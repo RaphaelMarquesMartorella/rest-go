@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  goapp:
+    build:
+      context: ./
+    container_name: goapp
+    image: raphaelmartorella/goapp
+    entrypoint: sh -c "go mod tidy && go run cmd/server/server.go"
+    ports:
+      - "3000:3000"
+    networks:
+      - commomNet
+    depends_on:
+      - godb
+    volumes:
+      - ./:/usr/src/app
+    tty: true
+
+  godb: 
+    image: mysql:8.0.3
+    command: --innodb-use-native-aio=0
+    container_name: godb
+    volumes:
+      - ./mysql:/var/lib/mysql
+
+    networks:
+      - commomNet
+
+    environment:
+      - MYSQL_DATABASE=goapp
+      - MYSQL_ROOT_PASSWORD=root
+
+networks:
+  commomNet:
+    driver: bridge
