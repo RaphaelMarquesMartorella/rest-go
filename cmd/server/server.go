@@ -1,20 +1,30 @@
 package main
 
 import (
-	"fmt"
-	"log"
+	"encoding/json"
 	"net/http"
+
+	"github.com/RaphaelMarquesMartorella/go-project/domain/model"
 )
 
-func main() {
-	http.HandleFunc("/World", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello World")
-	})
-
-	s := &http.Server{
-		Addr:    ":3000",
-		Handler: nil,
+func CreateBook(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
 	}
 
-	log.Fatal(s.ListenAndServe())
+	var book model.Book
+	err := json.NewDecoder(r.Body).Decode(&book)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(book)
+}
+
+func main() {
+	http.HandleFunc("/Books/Create", CreateBook)
+	http.ListenAndServe(":3000", nil)
 }
